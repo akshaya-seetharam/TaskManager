@@ -1,0 +1,159 @@
+/* Author: Akshaya */
+/* Tasklist class creates tasklist objects that contain task objects */
+
+class TaskList{
+
+    /** 
+     * Constructor for the Tasklist class, which creates the tasklist object and sets 
+     * its instance variables using its arguments
+     * @param {String} key - the key to be used for localStorage and cloud
+     * @param {String} domElement - domElement that the tasklist object is synced with 
+     */
+    constructor(key, domElement){
+        this.key = key;
+        this.taskListArray = [];
+        this.domElement = domElement;
+        this.domElement = $('<div>', {"id": "Tasklist"});
+        $("#theTasks").append(this.domElement);
+    }
+
+    /** 
+     * Creates a new Task object given the description, assign it a unique ID, adds it 
+     * to the tasklist, & adds it to the DOM element corresponding to this list
+     * @param {dictionary} description - the dictionary to be converted into a task
+     */
+    addNewTask(description){
+        id++;
+        let newTask = new Task(description);
+        newTask.setId(id);
+        this.taskListArray.push(newTask);
+        newTask.addtoDom(this.domElement);
+    }
+
+    /** 
+     * Re-creates a Task object, adds it to the tasklist, and adds it to the 
+     * DOM element corresponding with the list.
+     * @param {dictionary} description - the dictionary saved to localStorage 
+     *                                   to be converted into a task
+     */
+    addSavedTask(description){
+        let savedTask = new Task(description);
+        this.taskListArray.push(savedTask);
+        savedTask.addtoDom(this.domElement);
+    }
+    
+    /**  
+     * Returns the task with the given ID from the tasklist
+     * @param {int} tid - the taskID of the task being searched for
+     */
+    getTask(tid){
+        let taskToBeFound = this.taskListArray.find(({taskID}) => taskID === tid);
+        return taskToBeFound;
+    }
+     
+    /**  
+     * Deletes the task with the given ID from the tasklist, 
+     * or returns -1 if taskID not found
+     * @param {int} tid - the taskID of the task being deleted or -1
+     */
+    deleteTask(tid){
+        let index = this.taskListArray.findIndex(({taskID}) => taskID === tid);
+        if (index>1){
+            this.taskListArray.splice(index, 1);
+            return tasklist;
+        }
+        else{
+            return -1;
+        }
+    }
+
+    /* Saves the tasklist to localStorage */ 
+    save(){
+        console.log("saving");
+        localStorage.setItem(this.key,JSON.stringify(this.taskListArray));
+    }
+
+    /* Retrives the data from localStorage and calls addSavedTask() on the tasks */ 
+    load(){
+        $(this.domElement).empty();
+        this.taskListArray = [];
+        console.log("loading");
+        let localStorageArray = JSON.parse(localStorage.getItem(this.key));
+        localStorageArray.forEach((task, index) => {
+            tasklist.addSavedTask(task);
+        })
+    }
+
+    /* Sorts the list by taskID and calls refreshPage() */ 
+    sortById(){
+        this.taskListArray.sort((a,b) => a.taskID - b.taskID);
+        this.refreshPage();
+    }
+
+    /* Sorts the list by tag using sortTagCompare() and calls refreshPage() */ 
+    sortByTag(){
+        this.taskListArray.sort(sortTagCompare);
+        this.refreshPage();
+    }
+
+    /* Sorts the list by due date and calls refreshPage() */ 
+    sortByDueDate(){
+        this.taskListArray.sort((a,b) => a.duedate - b.duedate);
+        this.refreshPage();
+    }
+
+    /* Sorts the list by tag using sortPriorityCompare() and calls refreshPage() */ 
+    sortByPriority(){
+        this.taskListArray.sort(sortPriorityCompare);
+        this.refreshPage();
+    }
+
+    /* Empties tasklist's the domElement and re-displays the tasks in the sorted order */ 
+    refreshPage(){
+        $(this.domElement).empty();
+        (this.taskListArray).forEach((task) => {
+            task.addtoDom(this.domElement)
+       })
+    }
+    
+    /* Prints all the tasks in order, converting each to a string. */ 
+    print(){
+        (this.taskListArray).forEach((task, index) => {
+            task.toString();
+        })
+    }
+
+    /* Sets all task elements' DOM elements to null */ 
+    getDescriptionObject(){
+        (this.taskListArray).forEach((task) => {
+            task.setDomElt(null);
+    })
+    }
+}
+
+//global variables
+var tasklist = new TaskList("AKSHAYA_TASKS", "domElement");
+var id = 0;
+
+//HELPER FUNCTIONS
+/** Specific compare function that compares values of the task's tags */ 
+function sortTagCompare(a,b){
+    let aTag = a.tag;
+    let bTag = b.tag;
+    return aTag.localeCompare(bTag);
+}
+
+/** Specific compare function that compares values of the task's priority */ 
+function sortPriorityCompare(a,b){
+    if (a.priority == b.priority){
+        return 0;
+    }
+    else if (b.priority == "high" && a.priority == "medium" || 
+    b.priority == "high" && a.priority == "low" ||
+    b.priority == "medium" && a.priority == "low"){
+        return 1;
+    }
+    else{
+        return -1;
+    }
+}
